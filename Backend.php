@@ -60,7 +60,12 @@ class Backend {
 
 	function getPlayer($playerID){
 		$sql = 'SELECT * FROM players WHERE playerID = ?';
-		return $this->db->query($sql, $playerID)->fetchArray();
+		return $this->db->query($sql, $playerID)->fetch();
+	}
+
+	function getPlayers(){
+		$sql = 'SELECT * FROM players ORDER BY firstName, lastName';
+		return $this->db->query($sql)->fetchAll();
 	}
 
 	function getQuestion($questionID){
@@ -68,17 +73,37 @@ class Backend {
 		return $this->db->query($sql, $questionID)->fetch();
 	}
 
-	function getChoices($questionID){
-		$sql = 'SELECT * FROM answerChoices WHERE questionID = ?';
-		return $this->db->query($sql, $questionID)->fetchAll();
+	function getOptions($questionID, $playerID=null){
+		$params = Array('questionID'=>$questionID);
+		
+		$sql = 'SELECT * FROM answerOptions';
+		if(empty($playerID)){
+			$sql = 'SELECT *';
+		}else{
+			$sql = '
+				SELECT *, (
+					SELECT COUNT(*) FROM answerChoices
+					WHERE answerChoices.optionID = answerOptions.optionID
+						AND questionID = :questionID
+						AND playerID = :playerID
+				) AS selected';
+			$params['playerID'] = $playerID;
+		}
+		$sql .= '
+			FROM answerOptions
+			WHERE questionID = :questionID';
+		
+		return $this->db->query($sql, $params)->fetchAll();
 	}
 
 	function answerQuestion($playerID, $questionID, $answer){
 		$question = $this->getQuestion($questionID);
 		if($question['questionType'] == 'multiple-choice'){
+			$this->db->query('DELETE FROM answerChoices WHERE playerID=? AND questionID=?', $playerID, $questionID);
 			$sql = 'INSERT INTO answerChoices (questionID, playerID, optionID) VALUES (?, ?, ?)';
 			$this->db->query($sql, $questionID, $playerID, $answer);
 		}else{
+			$this->db->query('DELETE FROM shortAnswers WHERE playerID=? AND questionID=?', $playerID, $questionID);
 			$sql = 'INSERT INTO shortAnswers (questionID, playerID, answer) VALUES (?, ?, ?)';
 			$this->db->query($sql, $questionID, $playerID, $answer);
 		}

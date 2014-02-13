@@ -38,15 +38,24 @@ function logVar($var){
 	trigger_error(print_r($var, true));
 }
 
-function getError(){
-	$error = '';
+function formatError(){
 	if(!empty($_SESSION['error'])){
-		$error .= "<div class='error'>\n";
-		$error .= print_r($_SESSION['error'], true);
-		$error .= "</div>\n";
+		$msg = "<div class='error'>$_SESSION[error]</div>\n";
 		unset($_SESSION['error']);
+		
+		return $msg;
 	}
-	return $error;
+	return '';
+}
+
+function formatMessage(){
+	if(!empty($_SESSION['message'])){
+		$msg = "<div class='message'>$_SESSION[message]</div>\n";
+		unset($_SESSION['message']);
+		
+		return $msg;
+	}
+	return '';
 }
 
 set_error_handler('errorHandler');

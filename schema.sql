@@ -1,4 +1,4 @@
-DROP DATABASE NewlyWedGame;
+DROP DATABASE IF EXISTS NewlyWedGame;
 CREATE DATABASE IF NOT EXISTS NewlyWedGame;
 USE NewlyWedGame;
 
@@ -53,8 +53,9 @@ CREATE TABLE IF NOT EXISTS shortAnswers (
 	FOREIGN KEY (playerID) REFERENCES players(playerID)
 ) ENGINE=INNODB;
 
+DROP USER 'NewlyWedDBUser'@'localhost';
 CREATE USER 'NewlyWedDBUser'@'localhost' IDENTIFIED BY 'dBX4H5x7gHLVwMMN';
-GRANT SELECT, INSERT ON NewlyWedGame.* TO NewlyWedDBUser;
+GRANT ALL PRIVILEGES ON NewlyWedGame.* TO NewlyWedDBUser;
 
 
 INSERT INTO questions (questionID, question, round, gender, ordinal, questionType) VALUES ('1m1', '1m1 Test Question', 1, 'male', 1, 'multiple-choice');
