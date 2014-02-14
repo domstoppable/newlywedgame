@@ -94,12 +94,14 @@ echo formatError();
 echo formatMessage();
 if(empty($_SESSION['player'])){
 	$players = $backend->getPlayers();
-	$existingPlayerWidget = '<option></option>';
 	if(!empty($players)){
+		$existingPlayerWidget = '<option></option>';
 		foreach($players as $player){
 			$existingPlayerWidget .= "<option value='$player[playerID]'>$player[firstName] $player[lastName]</option>";
 		}
 		$existingPlayerWidget = "<select name='playerID'>$existingPlayerWidget</select>";
+	}else{
+		$existingPlayerWidget = '[ No existing players ]';
 	}
 ?>
 		<form method="post">
