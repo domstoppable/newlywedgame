@@ -2,13 +2,6 @@ DROP DATABASE IF EXISTS NewlyWedGame;
 CREATE DATABASE IF NOT EXISTS NewlyWedGame;
 USE NewlyWedGame;
 
-CREATE TABLE IF NOT EXISTS system (
-	activeQuestionID VARCHAR(5) DEFAULT NULL,
-	activePlayerID INT DEFAULT NULL,
-	FOREIGN KEY (activeQuestionID) REFERENCES questions(questionID),
-	FOREIGN KEY (activePlayerID) REFERENCES players(playerID)
-) ENGINE=INNODB;
-
 CREATE TABLE IF NOT EXISTS players (
 	playerID INT PRIMARY KEY AUTO_INCREMENT,
 	lastName VARCHAR(128),
@@ -51,7 +44,6 @@ CREATE TABLE IF NOT EXISTS answerChoices (
 	FOREIGN KEY (optionID) REFERENCES answerOptions(optionID)
 ) ENGINE=INNODB;
 
-
 CREATE TABLE IF NOT EXISTS shortAnswers (
 	questionID VARCHAR(5) NOT NULL,
 	playerID INT NOT NULL,
@@ -59,6 +51,14 @@ CREATE TABLE IF NOT EXISTS shortAnswers (
 	FOREIGN KEY (questionID) REFERENCES questions(questionID),
 	FOREIGN KEY (playerID) REFERENCES players(playerID)
 ) ENGINE=INNODB;
+
+CREATE TABLE IF NOT EXISTS system (
+	activeQuestionID VARCHAR(5) DEFAULT NULL,
+	activePlayerID INT DEFAULT NULL,
+	FOREIGN KEY (activeQuestionID) REFERENCES questions(questionID),
+	FOREIGN KEY (activePlayerID) REFERENCES players(playerID)
+) ENGINE=INNODB;
+
 
 DROP USER 'NewlyWedDBUser'@'localhost';
 CREATE USER 'NewlyWedDBUser'@'localhost' IDENTIFIED BY 'dBX4H5x7gHLVwMMN';
