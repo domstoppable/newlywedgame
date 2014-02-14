@@ -2,7 +2,7 @@
 require_once('config.php');
 
 $backend = Backend::instance();
-echo $backend;
 
-$questions = $backend->getQuestionsForGender('male');
-print_r($questions);
+//$backend->setActiveAnswer('2f1', 0);
+$x = $backend->getFullQuestionData();
+print_r($x);

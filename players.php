@@ -12,28 +12,35 @@
 	$backend = Backend::instance();
 	if(!empty($_REQUEST['logout'])){
 		session_unset();
+		header("Location: $_SERVER[PHP_SELF]");
+		exit();
 	}
 	if(empty($_SESSION['player']) && !empty($_POST)){
-		try{
-			$backend->startTransaction();
-			
-			if(empty($_POST['firstName']) || empty($_POST['lastName']) || empty($_POST['gender'])){
-				throw new Exception('Missing data');
-			}
-			$playerID = $backend->addPlayer($_POST['firstName'], $_POST['lastName'], $_POST['gender']);
-			$_SESSION['player'] = $backend->getPlayer($playerID);
+		if($_POST['action'] == 'Register'){
+			try{
+				$backend->startTransaction();
+				if(empty($_POST['firstName']) || empty($_POST['lastName']) || empty($_POST['gender'])){
+					throw new Exception('Missing data');
+				}
+				$playerID = $backend->addPlayer($_POST['firstName'], $_POST['lastName'], $_POST['gender']);
+				$_SESSION['player'] = $backend->getPlayer($playerID);
 
-			$backend->commit();
-		}catch(Exception $exc){
-			$backend->rollback();
-			logVar($exc);
-			$_SESSION['error'] = 'Oh no! :( An error has occurred while registering you: ' . $exc->getMessage();
+				$backend->commit();
+			}catch(Exception $exc){
+				$backend->rollback();
+				logVar($exc);
+				$_SESSION['error'] = 'Oh no! :( An error has occurred while registering you: ' . $exc->getMessage();
+			}
+		}elseif($_POST['action'] == 'Login'){
+			$playerID = $_POST['playerID'];
+			$_SESSION['player'] = $backend->getPlayer($playerID);
+			header("Location: $_SERVER[PHP_SELF]");
+			exit();
 		}
 	}
 	if(!empty($_SESSION['player']) && !empty($_POST['answers'])){
 		$errors = [];
 		foreach($_POST['answers'] as $questionID=>$answer){
-			if(empty($answer)) continue;
 			try{
 				$backend->startTransaction();
 				$backend->answerQuestion($_SESSION['player']['playerID'], $questionID, $answer);
@@ -56,16 +63,49 @@
 <html>
 	<head>
 		<meta charset="utf-8" />
-
+		<meta name='viewport' content='user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width' />
+		
 		<title>Newly Wed Game - Player Questionnaire</title>
 		
 		<style type="text/css">
+			body {
+				background-color: #000;
+				color: #fff;
+				background-image: url(images/newlywedgame.png);
+				background-position: center 0%;
+				background-repeat: no-repeat;
+				margin-top: 225px;
+				margin-bottom: 2em;
+			}
+
+			input, select {
+				width: 100%;
+			}
+			
+			input[type=submit] {
+				font-size: 110%;
+			}
+
+			form table {
+				width: 100%;
+			}
+
+			hr {
+				margin-top: 2em;
+				margin-bottom: 2em;
+			}
+
+			img {
+				border: none;
+			}
 		</style>
 		
 		<script type="text/javascript">
 		</script>
 	</head>
 	<body>
+		<table style="margin: auto;"><tr><td>
+		<!--<a href="./"><img src="images/newlywedgame.png" /></a>-->
 
 <?php
 
@@ -76,12 +116,11 @@ if(empty($_SESSION['player'])){
 	$existingPlayerWidget = '';
 	if(!empty($players)){
 		foreach($players as $player){
-			$$existingPlayerWidget .= "<option value='$player[playerID]'>$player[firstName] $player[lastName]</option>";
+			$existingPlayerWidget .= "<option value='$player[playerID]'>$player[firstName] $player[lastName]</option>";
 		}
-		$existingPlayerWidget = "<select name='playerID'>$widget</select>";
+		$existingPlayerWidget = "<select name='playerID'>$existingPlayerWidget</select>";
 	}
 ?>
-
 		<form method="post">
 			<h2>New Player</h2>
 			<table>
@@ -103,53 +142,53 @@ if(empty($_SESSION['player'])){
 					</td>
 				</tr>
 				<tr>
-					<td colspan="2"><input type="submit" value="Submit" /></td>
+					<td colspan="2"><input type="submit" value="Register" name='action'/></td>
 				</tr>
 			</table>
 	<?php if(!empty($existingPlayerWidget)){ ?>
+			<hr/>
 			<h2>Existing Player</h2>
 			<table>
 				<tr>
 					<td>Name:</td>
-					<td><?php echo $widget ?></td>
+					<td><?php echo $existingPlayerWidget ?></td>
 				</tr>
 				<tr>
-					<td colspan="2"><input type="submit" value="Submit" /></td>
+					<td colspan="2"><input type="submit" value="Login" name='action'/></td>
 				</tr>
 			</table>
 	<?php } ?>
 		</form>
 <?php }else{ ?>
-		<h2>Welcome <?php echo $_SESSION['player']['firstName'] ?>!</h2>
-		[ <a href="?logout=1">logout</a> ]
-		<form method='post'><pre>
+		<h2>Welcome <?php echo $_SESSION['player']['firstName'] ?>! <span style="font-weight: normal; font-size: 66.6%;">[ <a href="?logout=1">logout</a> ]</span></h2>
+		<hr/>
+		<form method='post'>
 <?php
 		$questions = $backend->getQuestionsForGender($_SESSION['player']['gender']);
 		foreach($questions as $question){
-			echo "<h3>$question[question]</h3>\n";
+			$answer = $backend->getAnswer($_SESSION['player']['playerID'], $question['questionID']);
+			echo "$question[question]<br/>\n";
 			if($question['questionType'] == 'multiple-choice'){
 				$options = $backend->getOptions($question['questionID'], $_SESSION['player']['playerID']);
-				$blah = '';
 				echo "<select name='answers[$question[questionID]]'>\n";
 				echo "	<option value='' />\n";
 				foreach($options as $option){
-					echo "	<option value='$option[optionID]'>$option[answer]</option>\n";
-					$blah .= print_r($option, true);
+					$selected = $option['optionID'] == $answer['optionID'] ? " selected='1'" : '';
+					echo "	<option value='$option[optionID]'$selected>$option[answer]</option>\n";
 				}
 				echo "</select>\n";
-				echo $blah;
 			}else{
-				echo "<input type='text' name='answers[$question[questionID]]' />\n";
+				echo "<input type='text' name='answers[$question[questionID]]' value='$answer[answer]'/>\n";
 			}
 			echo "<hr/>\n";
 		}
-		
-		echo "<br/><pre>";
-		print_r($_SESSION['player']);
-		print_r($_POST);
+		echo "
+			<input type='submit' value='Save my answers' />
+		</form>\n";
+
 }
 ?>
-		</form>
 
+		</td></tr></table>
 	</body>
 </html>

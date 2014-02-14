@@ -21,7 +21,9 @@ function errorHandler($code, $message, $file, $line, $vars){
 		E_USER_WARNING       => 'User Warning',
 		E_USER_NOTICE        => 'User Notice',
 		E_STRICT             => 'Runtime Notice',
-		E_RECOVERABLE_ERROR  => 'Catchable Fatal Error'
+		E_RECOVERABLE_ERROR  => 'Catchable Fatal Error',
+		E_DEPRECATED         => 'Deprecated',
+		E_USER_DEPRECATED    => '(User) Deprecated'
 	);
 	
 	$msg = "[" . date('Y-m-d H:i:s') . "] [$errorTypes[$code]] [CRDonors : $message] in [$file:$line]\n";
@@ -31,6 +33,7 @@ function errorHandler($code, $message, $file, $line, $vars){
 function exceptionHandler($exception){
 	$t = $exception->getTrace();
 	if(!empty($t[0])) $t = $t[0];
+	logVar($t);
 	trigger_error("Uncaught exception in ".$t['file']." line ".$t['line'].": " . $exception->getMessage(), E_USER_ERROR);
 }
 
@@ -58,5 +61,13 @@ function formatMessage(){
 	return '';
 }
 
-set_error_handler('errorHandler');
-set_exception_handler('exceptionHandler');
+function indexBy($arr, $field){
+	$output = [];
+	for($i=0; $i<count($arr); $i++){
+		$output[$arr[$i][$field]] = $arr[$i];
+	}
+	return $output;
+}
+
+//set_error_handler('errorHandler');
+//set_exception_handler('exceptionHandler');

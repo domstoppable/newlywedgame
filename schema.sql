@@ -2,6 +2,13 @@ DROP DATABASE IF EXISTS NewlyWedGame;
 CREATE DATABASE IF NOT EXISTS NewlyWedGame;
 USE NewlyWedGame;
 
+CREATE TABLE IF NOT EXISTS system (
+	activeQuestionID VARCHAR(5) DEFAULT NULL,
+	activePlayerID INT DEFAULT NULL,
+	FOREIGN KEY (activeQuestionID) REFERENCES questions(questionID),
+	FOREIGN KEY (activePlayerID) REFERENCES players(playerID)
+) ENGINE=INNODB;
+
 CREATE TABLE IF NOT EXISTS players (
 	playerID INT PRIMARY KEY AUTO_INCREMENT,
 	lastName VARCHAR(128),
@@ -10,12 +17,12 @@ CREATE TABLE IF NOT EXISTS players (
 ) ENGINE=INNODB;
 
 CREATE TABLE IF NOT EXISTS teams (
-	person1ID INT NOT NULL,
-	person2ID INT NOT NULL,
+	player1ID INT NOT NULL,
+	player2ID INT NOT NULL,
 	ordinal INT NOT NULL,
 	score INT NOT NULL,
-	FOREIGN KEY (person1ID) REFERENCES players(playerID),
-	FOREIGN KEY (person2ID) REFERENCES players(playerID)
+	FOREIGN KEY (player1ID) REFERENCES players(playerID),
+	FOREIGN KEY (player2ID) REFERENCES players(playerID)
 ) ENGINE=INNODB;
 
 CREATE TABLE IF NOT EXISTS questions (
@@ -57,6 +64,7 @@ DROP USER 'NewlyWedDBUser'@'localhost';
 CREATE USER 'NewlyWedDBUser'@'localhost' IDENTIFIED BY 'dBX4H5x7gHLVwMMN';
 GRANT ALL PRIVILEGES ON NewlyWedGame.* TO NewlyWedDBUser;
 
+INSERT INTO system () VALUES ();
 
 INSERT INTO questions (questionID, question, round, gender, ordinal, questionType) VALUES ('1m1', '1m1 Test Question', 1, 'male', 1, 'multiple-choice');
 INSERT INTO questions (questionID, question, round, gender, ordinal, questionType) VALUES ('1m2', '1m2 Test Question', 1, 'male', 2, 'multiple-choice');
