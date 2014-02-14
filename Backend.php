@@ -170,33 +170,19 @@ class Backend {
 		return $this->db->query($sql, $questionID, $playerID)->fetch();
 	}
 
-	function setActiveAnswer($questionID, $teamOrdinal){
-		$sql = '
-			(
-				SELECT playerID
-				FROM shortAnswers
-				JOIN teams
-					ON shortAnswers.playerID = teams.player1ID
-					OR shortAnswers.playerID = teams.player2ID
-				WHERE questionID = :questionID
-					AND teams.ordinal = :teamOrdinal
-			) UNION (
-				SELECT playerID
-				FROM answerChoices
-				JOIN teams
-					ON answerChoices.playerID = teams.player1ID
-					OR answerChoices.playerID = teams.player2ID
-				WHERE questionID = :questionID
-					AND teams.ordinal = :teamOrdinal
-			)';
-		$params = array(
-			'questionID' => $questionID,
-			'teamOrdinal' => $teamOrdinal
-		);
-		$playerID = $this->db->query($sql, $params)->fetch()['playerID'];
-		
+	function setActiveAnswer($round, $question, $playerID){
+		$player = $this->getPlayer($playerID);
+		$questionID = $round . substr($player['gender'], 0, 1) . $question;
+		$this->setActiveAnswerByIDs($questionID, $playerID);
+	}
+
+	function setActiveAnswerByIDs($questionID, $playerID){
 		$sql = 'UPDATE system SET activeQuestionID = ?, activePlayerID = ?';
 		$this->db->query($sql, $questionID, $playerID);
+	}
+
+	function clearActiveAnswer(){
+		$this->db->query('UPDATE system SET activeQuestionID = NULL, activePlayerID = NULL');
 	}
 
 	function getActiveQuestion(){
@@ -206,5 +192,19 @@ class Backend {
 
 	function getActiveIDs(){
 		return $this->db->query('SELECT * FROM system')->fetch();
+	}
+
+	function addPoints($round, $playerID, $mult=1){
+		$pointsByRound = [0, 10, 15, 25];
+		$sql = 'UPDATE teams SET score = score + :points WHERE player1ID = :playerID or player2ID = :playerID';
+		$params = array(
+			'points' => $pointsByRound[$round] * $mult,
+			'playerID' => $playerID
+		);
+		$this->db->query($sql, $params);
+	}
+	
+	function subtractPoints($round, $playerID){
+		$this->addPoints($round, $playerID, -1);
 	}
 }

@@ -1,0 +1,57 @@
+body {
+	text-align: center;
+	background-color: #000;
+	color: #fff;
+	background-image: url(../images/newlywedgame.png);
+	background-position: center 0%;
+	background-repeat: no-repeat;
+	margin-top: 250px;
+}
+
+.button {
+	font-size: 20pt;
+	padding: 0.25em;
+	padding-left: 1em;
+	padding-right: 1em;
+	margin: 0.5em;
+	cursor: pointer;
+	background: #333;
+	border-radius: 5px;
+}
+
+a, a:visited, a:hover {
+	text-decoration: none;
+	color: #fff;
+}
+
+table {
+	margin: auto;
+	border-collapse: collapse;
+}
+
+table table {
+	text-align: left;
+}
+
+input, select {
+	width: 100%;
+}
+
+input[type=submit] {
+	font-size: 110%;
+}
+
+hr {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+td {
+	padding: 0.5em;
+	vertical-align: top;
+}
+
+table table td {
+	border-top: 1px solid #aaa;
+	border-bottom: 1px solid #aaa;
+}

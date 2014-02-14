@@ -22,7 +22,11 @@
 				if(empty($_POST['firstName']) || empty($_POST['lastName']) || empty($_POST['gender'])){
 					throw new Exception('Missing data');
 				}
-				$playerID = $backend->addPlayer($_POST['firstName'], $_POST['lastName'], $_POST['gender']);
+				$playerID = $backend->addPlayer(
+					htmlentities($_POST['firstName'], ENT_QUOTES),
+					htmlentities($_POST['lastName'], ENT_QUOTES),
+					htmlentities($_POST['gender'], ENT_QUOTES)
+				);
 				$_SESSION['player'] = $backend->getPlayer($playerID);
 
 				$backend->commit();
@@ -32,10 +36,14 @@
 				$_SESSION['error'] = 'Oh no! :( An error has occurred while registering you: ' . $exc->getMessage();
 			}
 		}elseif($_POST['action'] == 'Login'){
-			$playerID = $_POST['playerID'];
-			$_SESSION['player'] = $backend->getPlayer($playerID);
-			header("Location: $_SERVER[PHP_SELF]");
-			exit();
+			if($_POST['password'] != 'wurtwurt'){
+				$_SESSION['error'] = 'Invalid password';
+			}else{
+				$playerID = $_POST['playerID'];
+				$_SESSION['player'] = $backend->getPlayer($playerID);
+				header("Location: $_SERVER[PHP_SELF]");
+				exit();
+			}
 		}
 	}
 	if(!empty($_SESSION['player']) && !empty($_POST['answers'])){
@@ -43,7 +51,7 @@
 		foreach($_POST['answers'] as $questionID=>$answer){
 			try{
 				$backend->startTransaction();
-				$backend->answerQuestion($_SESSION['player']['playerID'], $questionID, $answer);
+				$backend->answerQuestion($_SESSION['player']['playerID'], $questionID, htmlentities($answer, ENT_QUOTES));
 				$backend->commit();
 			}catch(Exception $exc){
 				$errors[] = $exc;
@@ -67,36 +75,11 @@
 		
 		<title>Newly Wed Game - Player Questionnaire</title>
 		
+		<link rel="stylesheet" href="style/main.css" type="text/css" />
 		<style type="text/css">
-			body {
-				background-color: #000;
-				color: #fff;
-				background-image: url(images/newlywedgame.png);
-				background-position: center 0%;
-				background-repeat: no-repeat;
-				margin-top: 225px;
-				margin-bottom: 2em;
-			}
-
-			input, select {
-				width: 100%;
-			}
-			
-			input[type=submit] {
-				font-size: 110%;
-			}
-
-			form table {
-				width: 100%;
-			}
-
 			hr {
 				margin-top: 2em;
 				margin-bottom: 2em;
-			}
-
-			img {
-				border: none;
 			}
 		</style>
 		
@@ -104,16 +87,14 @@
 		</script>
 	</head>
 	<body>
-		<table style="margin: auto;"><tr><td>
-		<!--<a href="./"><img src="images/newlywedgame.png" /></a>-->
-
+		<table><tr><td>
 <?php
 
 echo formatError();
 echo formatMessage();
 if(empty($_SESSION['player'])){
 	$players = $backend->getPlayers();
-	$existingPlayerWidget = '';
+	$existingPlayerWidget = '<option></option>';
 	if(!empty($players)){
 		foreach($players as $player){
 			$existingPlayerWidget .= "<option value='$player[playerID]'>$player[firstName] $player[lastName]</option>";
@@ -152,6 +133,10 @@ if(empty($_SESSION['player'])){
 				<tr>
 					<td>Name:</td>
 					<td><?php echo $existingPlayerWidget ?></td>
+				</tr>
+				<tr>
+					<td>Admin password:</td>
+					<td><input type="password" name="password" /></td>
 				</tr>
 				<tr>
 					<td colspan="2"><input type="submit" value="Login" name='action'/></td>

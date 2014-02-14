@@ -42,16 +42,11 @@
 		<meta name='viewport' content='user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width' />
 
 		<title>The Newlywed Game</title>
-		
+
+		<link rel="stylesheet" href="style/main.css" type="text/css" />
 		<style type="text/css">
 			body {
-				background-color: #000;
-				color: #fff;
-				background-image: url(images/newlywedgame.png);
-				background-position: center 0%;
-				background-repeat: no-repeat;
 				margin-top: 225px;
-				margin-bottom: 2em;
 				font-size: 20pt;
 				font-weight: bold;
 			}
@@ -65,14 +60,18 @@
 			li {
 				font-weight: normal;
 			}
-			.selected, #activePlayerName, #question {
+			.selected, #activePlayerName, #question, #answer {
 				color: #fff;
+			}
+			.selected {
+				background-color: #333;
 			}
 
 			#questionContainer {
 				position: absolute;
 				width: 100%;
 				color: #999;
+				display: none;
 			}
 			
 			#questionContainer table {
@@ -102,6 +101,7 @@
 		</style>
 		
 		<script type="text/javascript">
+			alert
 			var activeQuestionID = null;
 			var activePlayerID = null;
 
@@ -114,8 +114,7 @@
 				var httpRequest = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
 				httpRequest.onreadystatechange = function(){
 					if (httpRequest.readyState === 4) {
-						if (httpRequest.status === 200) {
-							console.log(httpRequest.responseText);
+						if (httpRequest.status === 200 && httpRequest.responseText != '') {
 							var lines = httpRequest.responseText.split("\n");
 							for(var i=0; i<lines.length; i++){
 								var record = lines[i].split("|");
@@ -124,21 +123,23 @@
 									activeQuestionID = record[1];
 								}else if(record[0] == 'p'){
 									activePlayerID = record[1];
-									e('activePlayerName').innerHTML = players[activePlayerID]['firstName'];
-									if(players[activePlayerID]['gender'] == 'female'){
-										e('genderPossessivePronoun').innerHTML = 'She';
-									}else{
-										e('genderPossessivePronoun').innerHTML = 'He';
+									if(activePlayerID != ''){
+										e('activePlayerName').innerHTML = players[activePlayerID]['firstName'];
+										if(players[activePlayerID]['gender'] == 'female'){
+											e('genderPossessivePronoun').innerHTML = 'She';
+										}else{
+											e('genderPossessivePronoun').innerHTML = 'He';
+										}
 									}
 								}else{
-									setScore(record[0], record[1]);
+									setScore(record[1], record[2]);
 								}
 								if(activeQuestionID != ''){
 									var q = questions[activeQuestionID];
 									e('question').innerHTML = q['question'];
 									
 									if(q['questionType'] == 'multiple-choice'){
-										e('answer').display = 'none';
+										e('answer').style.display = 'none';
 
 										var choiceList = e('choices');
 										while(choiceList.hasChildNodes()){
@@ -152,11 +153,11 @@
 											}
 											e('choices').appendChild(el);
 										}
-										e('choices').display = 'none';
+										e('choices').style.display = 'block';
 									}else{
-										e('choices').display = 'none';
+										e('choices').style.display = 'none';
 										e('answer').innerHTML = q['answers'][activePlayerID];
-										e('answer').display = 'block';
+										e('answer').style.display = 'block';
 									}
 
 									setScoresVisible(false);
@@ -167,7 +168,6 @@
 								}
 							}
 						}
-						updating = false;
 						getUpdate();
 					}
 				};
@@ -187,12 +187,12 @@
 			}
 
 			function setScore(team, score){
-				if(team == "") return;
+				if(team == "" || !team) return;
 				e('team' + team + '-score').innerHTML = score;
 			}
 			
 			function pageLoaded(){
-				setTimeout(getUpdate, 1000);
+				setTimeout(getUpdate, 2000);
 			}
 		</script>
 	</head>
@@ -209,11 +209,12 @@ foreach($teams as $id=>$team){
 ?>
 		<div id="questionContainer">
 			<table><tr><td>
-				<p>We asked <span id="activePlayerName"></span>...</a></p>
+				<p>We asked <span id="activePlayerName"></span>...</p>
 				<div id="question"></div>
-				<p><span id="genderPossessivePronoun"></span> answered:</a></p>
+				<p><span id="genderPossessivePronoun"></span> answered:</p>
 				<ul id="choices"></ul>
 				<div id="answer"></div>
-			</tr></td></table>
+			</td></tr></table>
+		</div>
 	</body>
 </html>

@@ -1,10 +1,14 @@
 <?php
 	/**
-	 * Interface for joining couples and scoreboard remote
+	 * Interface for joining couples
 	 **/
 
 	require_once('config.php');
 	session_start();
+	if(empty($_SESSION['isAdmin'])){
+		header('Location: admin.php');
+		exit();
+	}
 	
 	$backend = Backend::instance();
 
@@ -55,9 +59,8 @@
 		<meta name='viewport' content='user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width' />
 		
 		<title>Newly Wed Game - Remote Control</title>
-		
-		<style type="text/css">
-		</style>
+
+		<link rel="stylesheet" href="style/main.css" type="text/css" />
 		
 		<script type="text/javascript">
 			var teams = <?php echo json_encode($teams) ?>;
