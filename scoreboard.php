@@ -29,6 +29,8 @@
 			
 			if(!$dataToSend){
 				sleep(1);
+			}else{
+				break;
 			}
 		}
 		exit();
